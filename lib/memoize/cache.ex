@@ -15,17 +15,17 @@ defmodule Memoize.Cache do
     @cache_strategy.tab(cache_name, key)
   end
 
-  defp compare_and_swap(cache_name, key, :nothing, value) do
-    :ets.insert_new(tab(cache_name, key), value)
+  defp compare_and_swap(table, key, :nothing, value) do
+    :ets.insert_new(table, key), value)
   end
 
-  defp compare_and_swap(cache_name, key, expected, :nothing) do
-    num_deleted = :ets.select_delete(tab(cache_name, key), [{expected, [], [true]}])
+  defp compare_and_swap(table, key, expected, :nothing) do
+    num_deleted = :ets.select_delete(table, [{expected, [], [true]}])
     num_deleted == 1
   end
 
-  defp compare_and_swap(cache_name, key, expected, value) do
-    num_replaced = :ets.select_replace(tab(cache_name, key), [{expected, [], [{:const, value}]}])
+  defp compare_and_swap(table, key, expected, value) do
+    num_replaced = :ets.select_replace(table, [{expected, [], [{:const, value}]}])
     num_replaced == 1
   end
 
@@ -120,38 +120,39 @@ defmodule Memoize.Cache do
       end
 
     key = normalize_key(key)
-    record_metric(%{cache: cache_name, key: key, status: :attempt})
-    do_get_or_run(cache_name, key, fun, start, opts)
+    table = tab(cache_name, key)
+    record_metric(%{cache: table, key: key, status: :attempt})
+    do_get_or_run(table, key, fun, start, opts)
   end
 
-  defp do_get_or_run(cache_name, key, fun, start, opts) do
+  defp do_get_or_run(table, key, fun, start, opts) do
     key = normalize_key(key)
 
-    case :ets.lookup(tab(cache_name, key), key) do
+    case :ets.lookup(table, key) do
       # not started
       [] ->
         # calc
         runner_pid = self()
 
-        if compare_and_swap(cache_name, key, :nothing, {key, {:running, runner_pid, []}}) do
-          record_metric(%{cache: cache_name, key: key, start: start, status: :miss})
+        if compare_and_swap(table, key, :nothing, {key, {:running, runner_pid, []}}) do
+          record_metric(%{cache: table, key: key, start: start, status: :miss})
 
           try do
             fun.()
           else
             result ->
-              context = @cache_strategy.cache(cache_name, key, result, opts)
-              waiter_pids = set_result_and_get_waiter_pids(cache_name, key, result, context)
+              context = @cache_strategy.cache(table, key, result, opts)
+              waiter_pids = set_result_and_get_waiter_pids(table, key, result, context)
 
               Enum.map(waiter_pids, fn pid ->
                 send(pid, {self(), :completed})
               end)
 
-              do_get_or_run(cache_name, key, fun, start, opts)
+              do_get_or_run(table, key, fun, start, opts)
           rescue
             error ->
               # the status should be :running
-              waiter_pids = delete_and_get_waiter_pids(cache_name, key)
+              waiter_pids = delete_and_get_waiter_pids(table, key)
 
               Enum.map(waiter_pids, fn pid ->
                 send(pid, {self(), :failed})
@@ -160,12 +161,12 @@ defmodule Memoize.Cache do
               reraise error, System.stacktrace()
           end
         else
-          do_get_or_run(cache_name, key, fun, start, opts)
+          do_get_or_run(table, key, fun, start, opts)
         end
 
       # running
       [{^key, {:running, runner_pid, waiter_pids}} = expected] ->
-        record_metric(%{cache: cache_name, key: key, start: start, status: :wait})
+        record_metric(%{cache: table, key: key, start: start, status: :wait})
         max_waiters = Keyword.get(opts, :max_waiters, @max_waiters)
         waiters = length(waiter_pids)
 
@@ -173,7 +174,7 @@ defmodule Memoize.Cache do
           waiter_pids = [self() | waiter_pids]
 
           if compare_and_swap(
-               cache_name,
+               table,
                key,
                expected,
                {key, {:running, runner_pid, waiter_pids}}
@@ -202,17 +203,17 @@ defmodule Memoize.Cache do
           Process.sleep(waiter_sleep_ms)
         end
 
-        do_get_or_run(cache_name, key, fun, start, opts)
+        do_get_or_run(table, key, fun, start, opts)
 
       # completed
       [{^key, {:completed, value, context}}] ->
-        case @cache_strategy.read(cache_name, key, value, context) do
+        case @cache_strategy.read(table, key, value, context) do
           :retry ->
-            record_metric(%{cache: cache_name, key: key, start: start, status: :stale})
-            do_get_or_run(cache_name, key, fun, start, opts)
+            record_metric(%{cache: table, key: key, start: start, status: :stale})
+            do_get_or_run(table, key, fun, start, opts)
 
           :ok ->
-            record_metric(%{cache: cache_name, key: key, start: start, status: :hit})
+            record_metric(%{cache: table, key: key, start: start, status: :hit})
             value
         end
     end
