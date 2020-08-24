@@ -1,6 +1,6 @@
 # Benchmark
 
-Benchmark run from 2020-08-24 05:48:37.469614Z UTC
+Benchmark run from 2020-08-24 06:26:51.635791Z UTC
 
 ## System
 
@@ -35,7 +35,7 @@ Benchmark suite executing with the following configuration:
 <table style="width: 1%">
   <tr>
     <th style="width: 1%">:time</th>
-    <td style="white-space: nowrap">10 s</td>
+    <td style="white-space: nowrap">30 s</td>
   </tr><tr>
     <th>:parallel</th>
     <td style="white-space: nowrap">1</td>
@@ -62,19 +62,19 @@ Run Time
   </tr>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap; text-align: right">2.34 K</td>
+    <td style="white-space: nowrap; text-align: right">2.31 K</td>
     <td style="white-space: nowrap; text-align: right">0.43 ms</td>
-    <td style="white-space: nowrap; text-align: right">±10.96%</td>
+    <td style="white-space: nowrap; text-align: right">±14.22%</td>
     <td style="white-space: nowrap; text-align: right">0.43 ms</td>
-    <td style="white-space: nowrap; text-align: right">0.56 ms</td>
+    <td style="white-space: nowrap; text-align: right">0.70 ms</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">0.89 K</td>
-    <td style="white-space: nowrap; text-align: right">1.12 ms</td>
-    <td style="white-space: nowrap; text-align: right">±12.48%</td>
-    <td style="white-space: nowrap; text-align: right">1.14 ms</td>
-    <td style="white-space: nowrap; text-align: right">1.39 ms</td>
+    <td style="white-space: nowrap; text-align: right">0.95 K</td>
+    <td style="white-space: nowrap; text-align: right">1.05 ms</td>
+    <td style="white-space: nowrap; text-align: right">±19.64%</td>
+    <td style="white-space: nowrap; text-align: right">1.11 ms</td>
+    <td style="white-space: nowrap; text-align: right">1.58 ms</td>
   </tr>
 </table>
 Comparison
@@ -85,13 +85,13 @@ Comparison
     <th style="text-align: right">Slower</th>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap;text-align: right">2.34 K</td>
+    <td style="white-space: nowrap;text-align: right">2.31 K</td>
     <td>&nbsp;</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">0.89 K</td>
-    <td style="white-space: nowrap; text-align: right">2.63x</td>
+    <td style="white-space: nowrap; text-align: right">0.95 K</td>
+    <td style="white-space: nowrap; text-align: right">2.43x</td>
   </tr>
 </table>
 Memory Usage
@@ -128,19 +128,19 @@ Run Time
   </tr>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap; text-align: right">12.60 K</td>
-    <td style="white-space: nowrap; text-align: right">79.36 μs</td>
-    <td style="white-space: nowrap; text-align: right">±39.03%</td>
-    <td style="white-space: nowrap; text-align: right">81.44 μs</td>
-    <td style="white-space: nowrap; text-align: right">147.04 μs</td>
+    <td style="white-space: nowrap; text-align: right">12.42 K</td>
+    <td style="white-space: nowrap; text-align: right">80.49 μs</td>
+    <td style="white-space: nowrap; text-align: right">±42.69%</td>
+    <td style="white-space: nowrap; text-align: right">81.73 μs</td>
+    <td style="white-space: nowrap; text-align: right">156.39 μs</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">11.70 K</td>
-    <td style="white-space: nowrap; text-align: right">85.46 μs</td>
-    <td style="white-space: nowrap; text-align: right">±101.67%</td>
-    <td style="white-space: nowrap; text-align: right">85.99 μs</td>
-    <td style="white-space: nowrap; text-align: right">157.51 μs</td>
+    <td style="white-space: nowrap; text-align: right">11.38 K</td>
+    <td style="white-space: nowrap; text-align: right">87.84 μs</td>
+    <td style="white-space: nowrap; text-align: right">±322.15%</td>
+    <td style="white-space: nowrap; text-align: right">87.58 μs</td>
+    <td style="white-space: nowrap; text-align: right">177.64 μs</td>
   </tr>
 </table>
 Comparison
@@ -151,13 +151,13 @@ Comparison
     <th style="text-align: right">Slower</th>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap;text-align: right">12.60 K</td>
+    <td style="white-space: nowrap;text-align: right">12.42 K</td>
     <td>&nbsp;</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">11.70 K</td>
-    <td style="white-space: nowrap; text-align: right">1.08x</td>
+    <td style="white-space: nowrap; text-align: right">11.38 K</td>
+    <td style="white-space: nowrap; text-align: right">1.09x</td>
   </tr>
 </table>
 Memory Usage

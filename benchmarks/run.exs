@@ -17,12 +17,12 @@ Benchee.run(
     # number of processes
     # number range for cached values
 
-    "write" => {1, 10_000, 100_000_000_000},
+    "write" => {1, 10_000, 1_000_000_000_000},
     "read" => {100, 10_000, 1},
     # "medium" => {100, 10_000, 100},
     # "large" => {1_000, 10_000, 100}
   },
-  time: 10,
+  time: 30,
   memory_time: 2,
   before_scenario: fn input -> Bench.before_scenario(input) end,
   after_scenario: fn input -> Bench.after_scenario(input) end,
