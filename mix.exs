@@ -1,5 +1,6 @@
 defmodule Memoize.Mixfile do
   use Mix.Project
+
   def project do
     [
       app: :memoize,
@@ -13,7 +14,7 @@ defmodule Memoize.Mixfile do
       ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
-	bench: :bench,
+        bench: :bench,
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
@@ -57,7 +58,7 @@ defmodule Memoize.Mixfile do
       {:credo, "~> 1.1.0", only: [:dev, :test, :bench], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test, :bench], runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test, :bench]},
-      {:cachex, "~> 3.3", only: :bench},
+      {:cachex, "~> 3.3", only: :bench}
     ]
   end
 end

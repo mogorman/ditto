@@ -269,38 +269,40 @@ defmodule Memoize.Cache do
   defp time_metric_and_count(fun, metric) do
     case @enable_telemetry do
       false ->
-	fun.()
+        fun.()
+
       true ->
-    start = System.monotonic_time()
-    record_metric(metric)
-    result = fun.()
+        start = System.monotonic_time()
+        record_metric(metric)
+        result = fun.()
 
-    metric
-    |> Map.put(:start, start)
-    |> Map.put(:count, result)
-    |> record_metric()
+        metric
+        |> Map.put(:start, start)
+        |> Map.put(:count, result)
+        |> record_metric()
 
-    result
+        result
     end
   end
 
   defp record_metric(metric) do
     case @enable_telemetry do
       false ->
-	nil
+        nil
+
       true ->
-    case Map.get(metric, :start) do
-      nil ->
-        :telemetry.execute([:memoize, :cache, :start], metric)
+        case Map.get(metric, :start) do
+          nil ->
+            :telemetry.execute([:memoize, :cache, :start], metric)
 
-      start ->
-        duration = System.monotonic_time() - start
+          start ->
+            duration = System.monotonic_time() - start
 
-        :telemetry.execute(
-          [:memoize, :cache, :stop],
-          Map.put(metric, :duration, duration(duration))
-        )
-    end
+            :telemetry.execute(
+              [:memoize, :cache, :stop],
+              Map.put(metric, :duration, duration(duration))
+            )
+        end
     end
   end
 
