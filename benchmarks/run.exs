@@ -13,16 +13,13 @@ Benchee.run(
     "cachex" => fn input -> Bench.run(Memoize.Benchmarks.Cachex, input) end
   },
   inputs: %{
-    # number of times per process
-    # number of processes
-    # number range for cached values
-
+  #   # number of times per process
+  #   # number of processes
+  #   # number range for cached values
     "write" => {1, 10_000, 1_000_000_000_000},
     "read" => {100, 10_000, 1},
-    # "medium" => {100, 10_000, 100},
-    # "large" => {1_000, 10_000, 100}
   },
-  time: 30,
+  time: 300,
   memory_time: 2,
   before_scenario: fn input -> Bench.before_scenario(input) end,
   after_scenario: fn input -> Bench.after_scenario(input) end,
