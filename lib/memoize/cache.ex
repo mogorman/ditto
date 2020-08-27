@@ -2,7 +2,7 @@ defmodule Memoize.Cache do
   @cache_strategy Memoize.Application.cache_strategy()
   @max_waiters Application.get_env(:memoize, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:memoize, :waiter_sleep_ms, 200)
-  @enable_telemetry Application.get_env(:memoize, :enable_telemetry, false)
+  @enable_telemetry Application.get_env(:memoize, :enable_telemetry, true)
   require Memoize.Conditional
   import Memoize.Conditional
 
