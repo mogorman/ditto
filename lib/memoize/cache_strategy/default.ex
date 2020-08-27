@@ -27,6 +27,10 @@ if Memoize.CacheStrategy.configured?(Memoize.CacheStrategy.Default) do
       @ets_tab
     end
 
+    def tab(__MODULE__, _key) do
+      @ets_tab
+    end
+
     def tab(module, _key) do
       Module.concat(@ets_tab, module)
     end

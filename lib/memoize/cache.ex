@@ -3,6 +3,8 @@ defmodule Memoize.Cache do
   @max_waiters Application.get_env(:memoize, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:memoize, :waiter_sleep_ms, 200)
   @enable_telemetry Application.get_env(:memoize, :enable_telemetry, true)
+  require Memoize.Conditional
+  import Memoize.Conditional
 
   def cache_strategy() do
     @cache_strategy
@@ -99,34 +101,40 @@ defmodule Memoize.Cache do
     key
   end
 
-  def get_or_run(module, function, args, fun, opts \\ [])
-
-  def get_or_run(module, function, args, fun, opts) when not is_function(fun) do
-    get_or_run(module, function, args, fn -> fun end, opts)
+  def get_or_run(module, function, args, fun, opts \\ []) do
+    cache_name = cache_name(module)
+    case cache_name == module do
+      true ->
+	get_or_run_optimized(cache_name, {function, args}, fun, opts)
+      false ->
+	get_or_run_optimized(cache_name, {module, function, args}, fun, opts)
+    end
   end
 
-  def get_or_run(module, function, args, fun, opts) do
-    start = System.monotonic_time()
-    cache_name = cache_name(module)
+  def get_or_run_optimized(module, _cache, function, args, fun, opts \\ [])
 
-    key =
-      case cache_name == module do
-        true ->
-          {function, args}
+  def get_or_run_optimized(module, cache, function, args, fun, opts) when not is_function(fun) do
+    get_or_run_optimized(module, cache, function, args, fn -> fun end, opts)
+  end
 
-        false ->
-          {module, function, args}
-      end
+  def get_or_run_optimized(cache_name, key, fun, opts) do
+    if_enabled(@enable_telemetry) do
+      start = System.monotonic_time()
+    else
+      start = 0
+    end
 
     key = normalize_key(key)
     table = @cache_strategy.tab(cache_name, key)
-    record_metric(%{cache: table, key: key, status: :attempt})
+
+    if_enabled(@enable_telemetry) do
+      record_metric(%{cache: table, key: key, status: :attempt})
+    end
+
     do_get_or_run(table, key, fun, start, opts)
   end
 
   defp do_get_or_run(table, key, fun, start, opts) do
-    key = normalize_key(key)
-
     case :ets.lookup(table, key) do
       # not started
       [] ->
@@ -134,7 +142,9 @@ defmodule Memoize.Cache do
         runner_pid = self()
 
         if compare_and_swap(table, key, :nothing, {key, {:running, runner_pid, []}}) do
-          record_metric(%{cache: table, key: key, start: start, status: :miss})
+          if_enabled(@enable_telemetry) do
+            record_metric(%{cache: table, key: key, start: start, status: :miss})
+          end
 
           try do
             fun.()
@@ -165,7 +175,10 @@ defmodule Memoize.Cache do
 
       # running
       [{^key, {:running, runner_pid, waiter_pids}} = expected] ->
-        record_metric(%{cache: table, key: key, start: start, status: :wait})
+        if_enabled(@enable_telemetry) do
+          record_metric(%{cache: table, key: key, start: start, status: :wait})
+        end
+
         max_waiters = Keyword.get(opts, :max_waiters, @max_waiters)
         waiters = length(waiter_pids)
 
@@ -208,111 +221,119 @@ defmodule Memoize.Cache do
       [{^key, {:completed, value, context}}] ->
         case @cache_strategy.read(table, key, value, context) do
           :retry ->
-            record_metric(%{cache: table, key: key, start: start, status: :stale})
+            if_enabled(@enable_telemetry) do
+              record_metric(%{cache: table, key: key, start: start, status: :stale})
+            end
+
             do_get_or_run(table, key, fun, start, opts)
 
           :ok ->
-            record_metric(%{cache: table, key: key, start: start, status: :hit})
+            if_enabled(@enable_telemetry) do
+              record_metric(%{cache: table, key: key, start: start, status: :hit})
+            end
+
             value
         end
     end
   end
 
   def invalidate() do
-    time_metric_and_count(fn -> @cache_strategy.invalidate() end, %{
-      cache: :all,
-      key: {:all},
-      status: :invalidate
-    })
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.invalidate() end, %{
+        cache: :all,
+        key: {:all},
+        status: :invalidate
+      })
+    else
+      @cache_strategy.invalidate()
+    end
   end
 
   def invalidate(module) do
-    time_metric_and_count(fn -> @cache_strategy.invalidate(module) end, %{
-      cache: module,
-      key: {module},
-      status: :invalidate
-    })
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.invalidate(module) end, %{
+        cache: module,
+        key: {module},
+        status: :invalidate
+      })
+    else
+      @cache_strategy.invalidate(module)
+    end
   end
 
   def invalidate(module, function) do
-    time_metric_and_count(fn -> @cache_strategy.invalidate(module, function) end, %{
-      cache: module,
-      key: {module, function},
-      status: :invalidate
-    })
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.invalidate(module, function) end, %{
+        cache: module,
+        key: {module, function},
+        status: :invalidate
+      })
+    else
+      @cache_strategy.invalidate(module, function)
+    end
   end
 
   def invalidate(module, function, arguments) do
     arguments = normalize_key(arguments)
 
-    time_metric_and_count(fn -> @cache_strategy.invalidate(module, function, arguments) end, %{
-      cache: module,
-      key: {module, function, arguments},
-      status: :invalidate
-    })
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.invalidate(module, function, arguments) end, %{
+        cache: module,
+        key: {module, function, arguments},
+        status: :invalidate
+      })
+    else
+      @cache_strategy.invalidate(module, function, arguments)
+    end
   end
 
   def garbage_collect() do
-    time_metric_and_count(fn -> @cache_strategy.garbage_collect() end, %{
-      cache: :all,
-      status: :garbage_collect
-    })
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.garbage_collect() end, %{
+        cache: :all,
+        status: :garbage_collect
+      })
+    else
+      @cache_strategy.garbage_collect()
+    end
   end
 
   def garbage_collect(module) do
-    time_metric_and_count(fn -> @cache_strategy.garbage_collect(module) end, %{
-      cache: module,
-      status: :garbage_collect
-    })
-  end
-
-  defp time_metric_and_count(fun, metric) do
-    case @enable_telemetry do
-      false ->
-        fun.()
-
-      true ->
-        start = System.monotonic_time()
-        record_metric(metric)
-        result = fun.()
-
-        metric
-        |> Map.put(:start, start)
-        |> Map.put(:count, result)
-        |> record_metric()
-
-        result
-    end
-  end
-
-  defp record_metric(metric) do
-    case @enable_telemetry do
-      false ->
-        nil
-
-      true ->
-        case Map.get(metric, :start) do
-          nil ->
-            :telemetry.execute([:memoize, :cache, :start], metric)
-
-          start ->
-            duration = System.monotonic_time() - start
-
-            :telemetry.execute(
-              [:memoize, :cache, :stop],
-              Map.put(metric, :duration, duration(duration))
-            )
-        end
-    end
-  end
-
-  defp duration(duration) do
-    duration = System.convert_time_unit(duration, :native, :microsecond)
-
-    if duration > 1000 do
-      [duration |> div(1000) |> Integer.to_string(), "ms"]
+    if_enabled(@enable_telemetry) do
+      time_metric_and_count(fn -> @cache_strategy.garbage_collect(module) end, %{
+        cache: module,
+        status: :garbage_collect
+      })
     else
-      [Integer.to_string(duration), "µs"]
+      @cache_strategy.garbage_collect(module)
+    end
+  end
+
+  if @enable_telemetry do
+    defp time_metric_and_count(fun, metric) do
+      start = System.monotonic_time()
+      record_metric(metric)
+      result = fun.()
+
+      metric
+      |> Map.put(:start, start)
+      |> Map.put(:count, result)
+      |> record_metric()
+
+      result
+    end
+
+    defp record_metric(%{start: start} = metric) do
+      duration = System.monotonic_time() - start
+
+      :telemetry.execute(
+        [:memoize, :cache, :stop],
+        Map.put(metric, :duration, duration)
+      )
+    end
+
+    defp record_metric(metric) do
+      :telemetry.execute([:memoize, :cache, :start], metric)
     end
   end
 end

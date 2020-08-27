@@ -3,11 +3,11 @@ defmodule Memoize do
   #{File.read!("README.md")}
   """
 
-  defmacro __using__(args) do
+  defmacro __using__(_args) do
     quote do
       @memoize_cache_name Enum.reduce(
                             Application.get_env(:memoize, :caches, []),
-                            nil,
+                            Memoize.Application.cache_strategy(),
                             fn mod, acc ->
                               if mod == __MODULE__ do
                                 mod
@@ -49,11 +49,11 @@ defmodule Memoize do
   is converted to:
 
       def foo(t1, t2) do
-        Memoize.Cache.get_or_run({__MODULE__, :foo, [t1, t2]}, fn -> __foo_memoize(t1, t2) end)
+        Memoize.Cache.get_or_run_optimized({__MODULE__, :foo, [t1, t2]}, fn -> __foo_memoize(t1, t2) end)
       end
 
       def foo(t1, t2, t3) do
-        Memoize.Cache.get_or_run({__MODULE__, :foo, [t1, t2, t3]}, fn -> __foo_memoize(t1, t2, t3) end)
+        Memoize.Cache.get_or_run_optimized({__MODULE__, :foo, [t1, t2, t3]}, fn -> __foo_memoize(t1, t2, t3) end)
       end
 
       def __foo_memoize(0, y) do
@@ -167,24 +167,54 @@ defmodule Memoize do
             case method do
               :def ->
                 def unquote(origname)(unquote_splicing(args)) do
-                  Memoize.Cache.get_or_run(
-                    __MODULE__,
-                    unquote(origname),
-                    [unquote_splicing(args)],
-                    fn -> unquote(memoname)(unquote_splicing(args)) end,
-                    unquote(opts)
-                  )
+                  if __MODULE__ == @memoize_cache_name do
+                    Memoize.Cache.get_or_run_optimized(
+                      @memoize_cache_name,
+                      {
+                        unquote(origname),
+                        [unquote_splicing(args)]
+                      },
+                      fn -> unquote(memoname)(unquote_splicing(args)) end,
+                      unquote(opts)
+                    )
+                  else
+                    Memoize.Cache.get_or_run_optimized(
+                      @memoize_cache_name,
+                      {
+                        __MODULE__,
+                        unquote(origname),
+                        [unquote_splicing(args)]
+                      },
+                      fn -> unquote(memoname)(unquote_splicing(args)) end,
+                      unquote(opts)
+                    )
+                  end
                 end
 
               :defp ->
                 defp unquote(origname)(unquote_splicing(args)) do
-                  Memoize.Cache.get_or_run(
-                    __MODULE__,
-                    unquote(origname),
-                    [unquote_splicing(args)],
-                    fn -> unquote(memoname)(unquote_splicing(args)) end,
-                    unquote(opts)
-                  )
+                  if __MODULE__ == @memoize_cache_name do
+                    Memoize.Cache.get_or_run_optimized(
+                      @memoize_cache_name,
+                      {
+                        unquote(origname),
+                        [unquote_splicing(args)]
+                      },
+                      fn -> unquote(memoname)(unquote_splicing(args)) end,
+                      unquote(opts)
+                    )
+                  else
+                    Memoize.Cache.get_or_run_optimized(
+                      @memoize_cache_name,
+                      {
+                        __MODULE__,
+                        unquote(origname),
+                        [unquote_splicing(args)]
+                      },
+                      fn -> unquote(memoname)(unquote_splicing(args)) end,
+                      unquote(opts)
+                    )
+                  end
                 end
             end
           end
