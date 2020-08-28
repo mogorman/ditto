@@ -37,11 +37,11 @@ defmodule DittoTest do
     assert 7 == bar(1, 2, 4)
   end
 
-  defdittop pri() do
+  defpditto pri() do
     10
   end
 
-  test "defdittop defines pri" do
+  test "defpditto defines pri" do
     assert 10 == pri()
   end
 
