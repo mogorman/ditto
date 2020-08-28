@@ -1,11 +1,11 @@
-defmodule Memoize.Benchmarks.Bench do
+defmodule Ditto.Benchmarks.Bench do
   def before_scenario({_input_count, process_count, func_count} = input) do
     pids = gen_processes(process_count)
 
     counter = :counters.new(3, [])
     if func_count == 1 do
-      Memoize.Benchmarks.Cachex.test(func_count, counter)
-      Memoize.Benchmarks.Memoize.test(func_count, counter)
+      Ditto.Benchmarks.Cachex.test(func_count, counter)
+      Ditto.Benchmarks.Ditto.test(func_count, counter)
       :counters.put(counter, 1, 0)
       :counters.put(counter, 2, 0)
       :counters.put(counter, 3, 0)

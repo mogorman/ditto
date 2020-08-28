@@ -1,7 +1,7 @@
 use Mix.Config
 
-config :memoize, cache_strategy: Memoize.CacheStrategy.Eviction
+config :ditto, cache_strategy: Ditto.CacheStrategy.Eviction
 
-config :memoize, Memoize.CacheStrategy.Eviction,
+config :ditto, Ditto.CacheStrategy.Eviction,
   min_threshold: 90000,
   max_threshold: 100_000

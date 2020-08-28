@@ -1,5 +1,5 @@
-defmodule Memoize.Benchmarks.Cachex do
-  alias Memoize.Benchmarks.Bench
+defmodule Ditto.Benchmarks.Cachex do
+  alias Ditto.Benchmarks.Bench
 
   def test(n, counter) do
     Cachex.transaction!(:my_cache, [n], fn state ->

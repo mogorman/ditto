@@ -1,5 +1,14 @@
 # Changelog
 
+
+## 0.1.0
+
+- fork memoize rename ditto
+- redo benchmark suite
+- per module ets table ability
+- minor performance improvements
+- telemetry support
+
 ## 1.3.0
 
 - Limit count of waiter processes that receive message passing.

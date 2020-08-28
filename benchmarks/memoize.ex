@@ -1,6 +1,6 @@
-defmodule Memoize.Benchmarks.Memoize do
+defmodule Ditto.Benchmarks.Memoize do
   use Memoize
-  alias Memoize.Benchmarks.Bench
+  alias Ditto.Benchmarks.Bench
 
   defmemo test(n, counter) do
     Bench.calc(n, counter)

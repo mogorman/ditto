@@ -1,4 +1,4 @@
-alias Memoize.Benchmarks.Bench
+alias Ditto.Benchmarks.Bench
 
 children = [
   {Cachex, name: :my_cache}
@@ -9,8 +9,9 @@ Supervisor.start_link(children, opts)
 
 Benchee.run(
   %{
-    "memoize" => fn input -> Bench.run(Memoize.Benchmarks.Memoize, input) end,
-    "cachex" => fn input -> Bench.run(Memoize.Benchmarks.Cachex, input) end
+    "ditto" => fn input -> Bench.run(Ditto.Benchmarks.Ditto, input) end,
+    "memoize" => fn input -> Bench.run(Ditto.Benchmarks.Memoize, input) end,
+    "cachex" => fn input -> Bench.run(Ditto.Benchmarks.Cachex, input) end
   },
   inputs: %{
   #   # number of times per process
@@ -19,7 +20,7 @@ Benchee.run(
     "write" => {1, 10_000, 1_000_000_000_000},
     "read" => {100, 10_000, 1},
   },
-  time: 300,
+  time: 30,
   memory_time: 2,
   before_scenario: fn input -> Bench.before_scenario(input) end,
   after_scenario: fn input -> Bench.after_scenario(input) end,

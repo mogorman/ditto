@@ -1,16 +1,16 @@
-defmodule Memoize.Mixfile do
+defmodule Ditto.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :memoize,
-      version: "1.3.1",
+      app: :ditto,
+      version: "0.1.0",
       elixir: "~> 1.5",
-      description: "A method caching macro for elixir using CAS on ETS",
+      description: "A method caching macro for elixir using CAS on ETS, a fork of memoize",
       package: [
-        maintainers: ["melpon"],
+        maintainers: ["mog"],
         licenses: ["MIT"],
-        links: %{"GitHub" => "https://github.com/melpon/memoize"}
+        links: %{"GitHub" => "https://github.com/mogorman/ditto"}
       ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
@@ -24,12 +24,12 @@ defmodule Memoize.Mixfile do
         plt_add_deps: :transitive,
         plt_add_apps: [:ex_unit, :mix]
       ],
-      docs: [main: "Memoize"],
+      docs: [main: "Ditto"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      source_url: "https://github.com/melpon/memoize",
+      source_url: "https://github.com/mogorman/ditto",
       aliases: aliases()
     ]
   end
@@ -45,7 +45,7 @@ defmodule Memoize.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger], mod: {Memoize.Application, []}]
+    [extra_applications: [:logger], mod: {Ditto.Application, []}]
   end
 
   defp deps do
@@ -58,7 +58,8 @@ defmodule Memoize.Mixfile do
       {:credo, "~> 1.1.0", only: [:dev, :test, :bench], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test, :bench], runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test, :bench]},
-      {:cachex, "~> 3.3", only: :bench}
-    ]
+      {:cachex, "~> 3.3", only: :bench},
+      {:memoize, "~> 1.3", only: :bench}
+     ]
   end
 end
