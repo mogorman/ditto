@@ -25,10 +25,10 @@ defmodule Ditto.Mixfile do
         plt_add_apps: [:ex_unit, :mix]
       ],
       docs: [
-	main: "Ditto",
-	logo: "ditto.png",
-	extras: ["README.md"]
-	    ],
+        main: "Ditto",
+        logo: "ditto.png",
+        extras: ["README.md"]
+      ],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -64,6 +64,6 @@ defmodule Ditto.Mixfile do
       {:excoveralls, "~> 0.10", only: [:dev, :test, :bench]},
       {:cachex, "~> 3.3", only: :bench},
       {:memoize, "~> 1.3", only: :bench}
-     ]
+    ]
   end
 end

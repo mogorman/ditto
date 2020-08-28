@@ -370,7 +370,7 @@ defmodule Ditto.CacheTest do
   end
 
   @tag skip: System.get_env("DITTO_TEST_MODE") != "Ditto.CacheStrategy.Eviction_2"
-	  test "if :max_threshold is :infinity, cached values are not collected caused by memory size" do
+  test "if :max_threshold is :infinity, cached values are not collected caused by memory size" do
     eat_memory(10_000_000)
     used_bytes = Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
     Ditto.Cache.garbage_collect()

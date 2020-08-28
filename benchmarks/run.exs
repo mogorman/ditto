@@ -14,11 +14,11 @@ Benchee.run(
     "cachex" => fn input -> Bench.run(Ditto.Benchmarks.Cachex, input) end
   },
   inputs: %{
-  #   # number of times per process
-  #   # number of processes
-  #   # number range for cached values
+    #   # number of times per process
+    #   # number of processes
+    #   # number range for cached values
     "write" => {1, 10_000, 1_000_000_000_000},
-    "read" => {100, 10_000, 1},
+    "read" => {100, 10_000, 1}
   },
   time: 300,
   memory_time: 2,

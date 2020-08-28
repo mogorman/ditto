@@ -6,16 +6,16 @@ defmodule Ditto do
   defmacro __using__(_args) do
     quote do
       @ditto_cache_name Enum.reduce(
-                            Application.get_env(:ditto, :caches, []),
-                            Ditto.Application.cache_strategy(),
-                            fn mod, acc ->
-                              if mod == __MODULE__ do
-                                mod
-                              else
-                                acc
-                              end
+                          Application.get_env(:ditto, :caches, []),
+                          Ditto.Application.cache_strategy(),
+                          fn mod, acc ->
+                            if mod == __MODULE__ do
+                              mod
+                            else
+                              acc
                             end
-                          )
+                          end
+                        )
       import Ditto,
         only: [defditto: 1, defditto: 2, defditto: 3, defpditto: 1, defpditto: 2, defpditto: 3]
 

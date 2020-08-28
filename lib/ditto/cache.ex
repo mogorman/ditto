@@ -103,11 +103,13 @@ defmodule Ditto.Cache do
 
   def get_or_run(module, function, args, fun, opts \\ []) do
     cache_name = cache_name(module)
+
     case cache_name == module do
       true ->
-	get_or_run_optimized(cache_name, {function, args}, fun, opts)
+        get_or_run_optimized(cache_name, {function, args}, fun, opts)
+
       false ->
-	get_or_run_optimized(cache_name, {module, function, args}, fun, opts)
+        get_or_run_optimized(cache_name, {module, function, args}, fun, opts)
     end
   end
 

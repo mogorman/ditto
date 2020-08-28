@@ -3,6 +3,7 @@ defmodule Ditto.Benchmarks.Bench do
     pids = gen_processes(process_count)
 
     counter = :counters.new(3, [])
+
     if func_count == 1 do
       Ditto.Benchmarks.Cachex.test(func_count, counter)
       Ditto.Benchmarks.Ditto.test(func_count, counter)
@@ -18,7 +19,7 @@ defmodule Ditto.Benchmarks.Bench do
   def after_scenario({_input, {pids, counter}}) do
     misses = :counters.get(counter, 1)
     hits = :counters.get(counter, 2)
-    IO.puts("Misses: #{misses}, Hits: #{hits-misses}")
+    IO.puts("Misses: #{misses}, Hits: #{hits - misses}")
     Enum.each(pids, fn pid -> Agent.stop(pid) end)
   end
 
@@ -43,7 +44,6 @@ defmodule Ditto.Benchmarks.Bench do
     Enum.at(pids, count)
   end
 
-
   def run(module, {{input_count, process_count, func_count}, {pids, counter}}) do
     counter
     |> :counters.get(3)
@@ -53,8 +53,10 @@ defmodule Ditto.Benchmarks.Bench do
         for _ <- 1..input_count do
           n = :rand.uniform(func_count)
           module.test(n, counter)
-	  :counters.add(counter, 2, 1)
+          :counters.add(counter, 2, 1)
         end
-    end, 30_000)
+      end,
+      30_000
+    )
   end
 end
