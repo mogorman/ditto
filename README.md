@@ -1,3 +1,13 @@
+<p align="center">
+<a href="https://hexdocs.pm/ditto/"><img src="https://img.shields.io/badge/api-docs-green" alt="Docs"/></a>
+<a href="https://travis-ci.com/mogorman/ditto"><img src="https://travis-ci.com/mogorman/ditto.svg?branch=main" alt="Build"/></a>
+<a href="https://coveralls.io/github/mogorman/ditto?branch=main"><img src="https://coveralls.io/repos/github/mogorman/ditto/badge.svg" alt="Code Coverage"/></a>
+<a href="https://hex.pm/packages/ditto"><img src="http://img.shields.io/hexpm/v/ditto.svg" alt="Package"/></a>
+<a href="COPYING.txt"><img src="http://img.shields.io/hexpm/l/ditto.svg" alt="License"/></a>
+<img src="https://img.shields.io/hexpm/dt/ditto" alt="Downloads"/>
+<img src="/ditto.png" alt="ditto logo"/>
+
+
 # Ditto
 
 A memoization macro.

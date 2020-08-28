@@ -5,10 +5,10 @@ defmodule Ditto.Mixfile do
     [
       app: :ditto,
       version: "0.1.0",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       description: "A method caching macro for elixir using CAS on ETS, a fork of memoize",
       package: [
-        maintainers: ["mog"],
+        maintainers: ["Matthew O'Gorman mog@rldn.net"],
         licenses: ["MIT"],
         links: %{"GitHub" => "https://github.com/mogorman/ditto"}
       ],
@@ -24,7 +24,11 @@ defmodule Ditto.Mixfile do
         plt_add_deps: :transitive,
         plt_add_apps: [:ex_unit, :mix]
       ],
-      docs: [main: "Ditto"],
+      docs: [
+	main: "Ditto",
+	logo: "ditto.png",
+	extras: ["README.md"]
+	    ],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
