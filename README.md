@@ -305,6 +305,4 @@ end
 
 CAS is [now available](http://erlang.org/doc/man/ets.html#select_replace-2) in Erlang/OTP 20.
 
-## Benchmarks
-
-<!-- embedme benchmarks/benchmarks.md -->
+## [Benchmarks](benchmarks/benchmarks.md)
