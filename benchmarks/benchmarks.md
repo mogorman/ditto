@@ -1,6 +1,6 @@
 # Benchmark
 
-Benchmark run from 2020-08-28 14:08:39.576381Z UTC
+Benchmark run from 2020-08-28 15:12:57.311346Z UTC
 
 ## System
 
@@ -35,7 +35,7 @@ Benchmark suite executing with the following configuration:
 <table style="width: 1%">
   <tr>
     <th style="width: 1%">:time</th>
-    <td style="white-space: nowrap">30 s</td>
+    <td style="white-space: nowrap">5 min</td>
   </tr><tr>
     <th>:parallel</th>
     <td style="white-space: nowrap">1</td>
@@ -62,27 +62,27 @@ Run Time
   </tr>
   <tr>
     <td style="white-space: nowrap">ditto</td>
-    <td style="white-space: nowrap; text-align: right">6.41 K</td>
-    <td style="white-space: nowrap; text-align: right">156.11 μs</td>
-    <td style="white-space: nowrap; text-align: right">±17.53%</td>
-    <td style="white-space: nowrap; text-align: right">155.51 μs</td>
-    <td style="white-space: nowrap; text-align: right">216.96 μs</td>
+    <td style="white-space: nowrap; text-align: right">6.63 K</td>
+    <td style="white-space: nowrap; text-align: right">150.79 μs</td>
+    <td style="white-space: nowrap; text-align: right">±24.02%</td>
+    <td style="white-space: nowrap; text-align: right">148.96 μs</td>
+    <td style="white-space: nowrap; text-align: right">209.53 μs</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap; text-align: right">5.74 K</td>
-    <td style="white-space: nowrap; text-align: right">174.10 μs</td>
-    <td style="white-space: nowrap; text-align: right">±14.57%</td>
-    <td style="white-space: nowrap; text-align: right">173.56 μs</td>
-    <td style="white-space: nowrap; text-align: right">241.08 μs</td>
+    <td style="white-space: nowrap; text-align: right">5.52 K</td>
+    <td style="white-space: nowrap; text-align: right">181.24 μs</td>
+    <td style="white-space: nowrap; text-align: right">±20.40%</td>
+    <td style="white-space: nowrap; text-align: right">178.81 μs</td>
+    <td style="white-space: nowrap; text-align: right">248.23 μs</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">1.29 K</td>
-    <td style="white-space: nowrap; text-align: right">774.01 μs</td>
-    <td style="white-space: nowrap; text-align: right">±10.99%</td>
-    <td style="white-space: nowrap; text-align: right">798.01 μs</td>
-    <td style="white-space: nowrap; text-align: right">916.21 μs</td>
+    <td style="white-space: nowrap; text-align: right">1.04 K</td>
+    <td style="white-space: nowrap; text-align: right">960.87 μs</td>
+    <td style="white-space: nowrap; text-align: right">±27.28%</td>
+    <td style="white-space: nowrap; text-align: right">883.36 μs</td>
+    <td style="white-space: nowrap; text-align: right">2071.81 μs</td>
   </tr>
 </table>
 Comparison
@@ -93,18 +93,18 @@ Comparison
     <th style="text-align: right">Slower</th>
   <tr>
     <td style="white-space: nowrap">ditto</td>
-    <td style="white-space: nowrap;text-align: right">6.41 K</td>
+    <td style="white-space: nowrap;text-align: right">6.63 K</td>
     <td>&nbsp;</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap; text-align: right">5.74 K</td>
-    <td style="white-space: nowrap; text-align: right">1.12x</td>
+    <td style="white-space: nowrap; text-align: right">5.52 K</td>
+    <td style="white-space: nowrap; text-align: right">1.2x</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">1.29 K</td>
-    <td style="white-space: nowrap; text-align: right">4.96x</td>
+    <td style="white-space: nowrap; text-align: right">1.04 K</td>
+    <td style="white-space: nowrap; text-align: right">6.37x</td>
   </tr>
 </table>
 Memory Usage
@@ -145,28 +145,28 @@ Run Time
     <th style="text-align: right">99th&nbsp;%</th>
   </tr>
   <tr>
-    <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap; text-align: right">19.63 K</td>
-    <td style="white-space: nowrap; text-align: right">50.94 μs</td>
-    <td style="white-space: nowrap; text-align: right">±50.48%</td>
-    <td style="white-space: nowrap; text-align: right">51.67 μs</td>
-    <td style="white-space: nowrap; text-align: right">100.41 μs</td>
+    <td style="white-space: nowrap">ditto</td>
+    <td style="white-space: nowrap; text-align: right">19.36 K</td>
+    <td style="white-space: nowrap; text-align: right">51.66 μs</td>
+    <td style="white-space: nowrap; text-align: right">±85.33%</td>
+    <td style="white-space: nowrap; text-align: right">52.31 μs</td>
+    <td style="white-space: nowrap; text-align: right">97.63 μs</td>
   </tr>
   <tr>
-    <td style="white-space: nowrap">ditto</td>
-    <td style="white-space: nowrap; text-align: right">19.56 K</td>
-    <td style="white-space: nowrap; text-align: right">51.12 μs</td>
-    <td style="white-space: nowrap; text-align: right">±51.17%</td>
-    <td style="white-space: nowrap; text-align: right">51.85 μs</td>
-    <td style="white-space: nowrap; text-align: right">98.68 μs</td>
+    <td style="white-space: nowrap">memoize</td>
+    <td style="white-space: nowrap; text-align: right">19.02 K</td>
+    <td style="white-space: nowrap; text-align: right">52.57 μs</td>
+    <td style="white-space: nowrap; text-align: right">±87.36%</td>
+    <td style="white-space: nowrap; text-align: right">53.04 μs</td>
+    <td style="white-space: nowrap; text-align: right">100.98 μs</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">15.27 K</td>
-    <td style="white-space: nowrap; text-align: right">65.47 μs</td>
-    <td style="white-space: nowrap; text-align: right">±594.08%</td>
-    <td style="white-space: nowrap; text-align: right">63.45 μs</td>
-    <td style="white-space: nowrap; text-align: right">138.53 μs</td>
+    <td style="white-space: nowrap; text-align: right">11.77 K</td>
+    <td style="white-space: nowrap; text-align: right">84.96 μs</td>
+    <td style="white-space: nowrap; text-align: right">±3012.16%</td>
+    <td style="white-space: nowrap; text-align: right">68.62 μs</td>
+    <td style="white-space: nowrap; text-align: right">205.43 μs</td>
   </tr>
 </table>
 Comparison
@@ -176,19 +176,19 @@ Comparison
     <th style="text-align: right">IPS</th>
     <th style="text-align: right">Slower</th>
   <tr>
-    <td style="white-space: nowrap">memoize</td>
-    <td style="white-space: nowrap;text-align: right">19.63 K</td>
+    <td style="white-space: nowrap">ditto</td>
+    <td style="white-space: nowrap;text-align: right">19.36 K</td>
     <td>&nbsp;</td>
   </tr>
   <tr>
-    <td style="white-space: nowrap">ditto</td>
-    <td style="white-space: nowrap; text-align: right">19.56 K</td>
-    <td style="white-space: nowrap; text-align: right">1.0x</td>
+    <td style="white-space: nowrap">memoize</td>
+    <td style="white-space: nowrap; text-align: right">19.02 K</td>
+    <td style="white-space: nowrap; text-align: right">1.02x</td>
   </tr>
   <tr>
     <td style="white-space: nowrap">cachex</td>
-    <td style="white-space: nowrap; text-align: right">15.27 K</td>
-    <td style="white-space: nowrap; text-align: right">1.29x</td>
+    <td style="white-space: nowrap; text-align: right">11.77 K</td>
+    <td style="white-space: nowrap; text-align: right">1.64x</td>
   </tr>
 </table>
 Memory Usage
@@ -199,12 +199,12 @@ Memory Usage
       <th style="text-align: right">Factor</th>
   </tr>
   <tr>
-    <td style="white-space: nowrap">memoize</td>
+    <td style="white-space: nowrap">ditto</td>
     <td style="white-space: nowrap">272 B</td>
       <td>&nbsp;</td>
   </tr>
   <tr>
-    <td style="white-space: nowrap">ditto</td>
+    <td style="white-space: nowrap">memoize</td>
     <td style="white-space: nowrap">272 B</td>
     <td>1.0x</td>
   </tr>
