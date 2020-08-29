@@ -145,103 +145,115 @@ defmodule Ditto.Cache do
 
   defp do_get_or_run(table, key, fun, start, opts) do
     case :ets.lookup(table, key) do
-      # not started
       [] ->
-        # calc
-        runner_pid = self()
-
-        if compare_and_swap(table, key, :nothing, {key, {:running, runner_pid, []}}) do
-          if_enabled(@enable_telemetry) do
-            record_metric(%{cache: table, key: key, start: start, status: :miss})
-          end
-
-          try do
-            fun.()
-          else
-            result ->
-              context = @cache_strategy.cache(table, key, result, opts)
-              waiter_pids = set_result_and_get_waiter_pids(table, key, result, context)
-
-              Enum.each(waiter_pids, fn pid ->
-                send(pid, {self(), :completed})
-              end)
-
-              do_get_or_run(table, key, fun, start, opts)
-          rescue
-            error ->
-              # the status should be :running
-              waiter_pids = delete_and_get_waiter_pids(table, key)
-
-              Enum.each(waiter_pids, fn pid ->
-                send(pid, {self(), :failed})
-              end)
-
-              reraise error, System.stacktrace()
-          end
-        else
-          do_get_or_run(table, key, fun, start, opts)
-        end
+        do_run(table, key, fun, start, opts)
 
       # running
       [{^key, {:running, runner_pid, waiter_pids}} = expected] ->
-        if_enabled(@enable_telemetry) do
-          record_metric(%{cache: table, key: key, start: start, status: :wait})
+        do_already_running(table, key, runner_pid, waiter_pids, expected, fun, start, opts)
+
+      # completed
+      [{^key, {:completed, value, context}}] ->
+        do_already_ran(table, key, value, context, start, opts)
+    end
+  end
+
+  defp do_run(table, key, fun, start, opts) do
+    # not started
+    # calc
+    runner_pid = self()
+
+    if compare_and_swap(table, key, :nothing, {key, {:running, runner_pid, []}}) do
+      if_enabled(@enable_telemetry) do
+        record_metric(%{cache: table, key: key, start: start, status: :miss})
+      end
+
+      try do
+        fun.()
+      else
+        result ->
+          context = @cache_strategy.cache(table, key, result, opts)
+          waiter_pids = set_result_and_get_waiter_pids(table, key, result, context)
+
+          Enum.each(waiter_pids, fn pid ->
+            send(pid, {self(), :completed})
+          end)
+
+          do_get_or_run(table, key, fun, start, opts)
+      rescue
+        error ->
+          # the status should be :running
+          waiter_pids = delete_and_get_waiter_pids(table, key)
+
+          Enum.each(waiter_pids, fn pid ->
+            send(pid, {self(), :failed})
+          end)
+
+          reraise error, System.stacktrace()
+      end
+    else
+      do_get_or_run(table, key, fun, start, opts)
+    end
+  end
+
+  def do_already_running(table, key, runner_pid, waiter_pids, expected, fun, start, opts) do
+    if_enabled(@enable_telemetry) do
+      record_metric(%{cache: table, key: key, start: start, status: :wait})
+    end
+
+    max_waiters = Keyword.get(opts, :max_waiters, @max_waiters)
+    waiters = length(waiter_pids)
+
+    if waiters < max_waiters do
+      waiter_pids = [self() | waiter_pids]
+
+      if compare_and_swap(
+           table,
+           key,
+           expected,
+           {key, {:running, runner_pid, waiter_pids}}
+         ) do
+        ref = Process.monitor(runner_pid)
+
+        receive do
+          {^runner_pid, :completed} -> :ok
+          {^runner_pid, :failed} -> :ok
+          {:DOWN, ^ref, :process, ^runner_pid, _reason} -> :ok
+        after
+          @overflow_timeout -> :ok
         end
 
-        max_waiters = Keyword.get(opts, :max_waiters, @max_waiters)
-        waiters = length(waiter_pids)
+        Process.demonitor(ref, [:flush])
+        # flush existing messages
+        receive do
+          {^runner_pid, _} -> :ok
+        after
+          0 -> :ok
+        end
+      end
+    else
+      waiter_sleep_ms = Keyword.get(opts, :waiter_sleep_ms, @waiter_sleep_ms)
+      Process.sleep(waiter_sleep_ms)
+    end
 
-        if waiters < max_waiters do
-          waiter_pids = [self() | waiter_pids]
+    do_get_or_run(table, key, fun, start, opts)
+  end
 
-          if compare_and_swap(
-               table,
-               key,
-               expected,
-               {key, {:running, runner_pid, waiter_pids}}
-             ) do
-            ref = Process.monitor(runner_pid)
-
-            receive do
-              {^runner_pid, :completed} -> :ok
-              {^runner_pid, :failed} -> :ok
-              {:DOWN, ^ref, :process, ^runner_pid, _reason} -> :ok
-            after
-              @overflow_timeout -> :ok
-            end
-
-            Process.demonitor(ref, [:flush])
-            # flush existing messages
-            receive do
-              {^runner_pid, _} -> :ok
-            after
-              0 -> :ok
-            end
-          end
-        else
-          waiter_sleep_ms = Keyword.get(opts, :waiter_sleep_ms, @waiter_sleep_ms)
-          Process.sleep(waiter_sleep_ms)
+  def do_already_ran(table, key, value, context, start, opts) do
+    case @cache_strategy.read(table, key, value, context) do
+      :retry ->
+        if_enabled(@enable_telemetry) do
+          record_metric(%{cache: table, key: key, start: start, status: :stale})
         end
 
         do_get_or_run(table, key, fun, start, opts)
 
-      # completed
-      [{^key, {:completed, value, context}}] ->
-        case @cache_strategy.read(table, key, value, context) do
-          :retry ->
-            if_enabled(@enable_telemetry) do
-              record_metric(%{cache: table, key: key, start: start, status: :stale})
-            end
-
-            do_get_or_run(table, key, fun, start, opts)
-
-          :ok ->
-            if_enabled(@enable_telemetry) do
-              record_metric(%{cache: table, key: key, start: start, status: :hit})
-            end
-
-            value
+      :ok ->
+        if_enabled(@enable_telemetry) do
+          record_metric(%{cache: table, key: key, start: start, status: :hit})
         end
+
+        value
     end
   end
 
