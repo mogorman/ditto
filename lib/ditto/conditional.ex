@@ -1,4 +1,7 @@
 defmodule Ditto.Conditional do
+  @moduledoc """
+  allow for code to be added or removed easily.
+  """
   defmacro if_enabled(clause, do: expression) do
     var = Macro.expand(clause, __CALLER__)
 

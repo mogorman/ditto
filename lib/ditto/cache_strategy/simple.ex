@@ -1,6 +1,8 @@
 if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Simple) do
   defmodule Ditto.CacheStrategy.Simple do
-    @moduledoc false
+    @moduledoc """
+    The simple startegy, very similar to the default strategy from memoize
+    """
 
     @behaviour Ditto.CacheStrategy
 

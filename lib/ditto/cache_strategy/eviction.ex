@@ -1,6 +1,9 @@
 if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Eviction) do
   defmodule Ditto.CacheStrategy.Eviction do
     @behaviour Ditto.CacheStrategy
+    @moduledoc """
+    The eviction version has tools for removing things from cache based on size
+    """
 
     @ets_tab __MODULE__
     @read_history_tab Module.concat(__MODULE__, "ReadHistory")

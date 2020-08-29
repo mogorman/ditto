@@ -1,8 +1,15 @@
 defmodule Ditto.Cache do
+  @moduledoc """
+  The caching layer for ditto.
+
+  """
   @cache_strategy Ditto.Application.cache_strategy()
   @max_waiters Application.get_env(:ditto, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:ditto, :waiter_sleep_ms, 200)
   @enable_telemetry Application.get_env(:ditto, :enable_telemetry, false)
+
+  @overflow_timeout Application.get_env(:ditto, :overflow_timeout, 5000)
+
   require Ditto.Conditional
   import Ditto.Conditional
 
@@ -155,7 +162,7 @@ defmodule Ditto.Cache do
               context = @cache_strategy.cache(table, key, result, opts)
               waiter_pids = set_result_and_get_waiter_pids(table, key, result, context)
 
-              Enum.map(waiter_pids, fn pid ->
+              Enum.each(waiter_pids, fn pid ->
                 send(pid, {self(), :completed})
               end)
 
@@ -165,7 +172,7 @@ defmodule Ditto.Cache do
               # the status should be :running
               waiter_pids = delete_and_get_waiter_pids(table, key)
 
-              Enum.map(waiter_pids, fn pid ->
+              Enum.each(waiter_pids, fn pid ->
                 send(pid, {self(), :failed})
               end)
 
@@ -200,8 +207,7 @@ defmodule Ditto.Cache do
               {^runner_pid, :failed} -> :ok
               {:DOWN, ^ref, :process, ^runner_pid, _reason} -> :ok
             after
-              # todo: make this configurable
-              5000 -> :ok
+              @overflow_timeout -> :ok
             end
 
             Process.demonitor(ref, [:flush])

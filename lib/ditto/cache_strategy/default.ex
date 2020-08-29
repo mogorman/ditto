@@ -1,6 +1,8 @@
 if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
   defmodule Ditto.CacheStrategy.Default do
-    @moduledoc false
+    @moduledoc """
+    The default setting. has option ets per module, but defaults to all together
+    """
 
     @behaviour Ditto.CacheStrategy
 
