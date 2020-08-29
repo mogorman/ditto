@@ -3,6 +3,7 @@ defmodule Ditto.Cache do
   The caching layer for ditto.
 
   """
+  # @compile {:inline, myfun: 1}
   @cache_strategy Ditto.Application.cache_strategy()
   @max_waiters Application.get_env(:ditto, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:ditto, :waiter_sleep_ms, 200)
@@ -154,7 +155,7 @@ defmodule Ditto.Cache do
 
       # completed
       [{^key, {:completed, value, context}}] ->
-        do_already_ran(table, key, value, context, start, opts)
+        do_already_ran(table, key, value, fun, context, start, opts)
     end
   end
 
@@ -239,7 +240,7 @@ defmodule Ditto.Cache do
     do_get_or_run(table, key, fun, start, opts)
   end
 
-  def do_already_ran(table, key, value, context, start, opts) do
+  def do_already_ran(table, key, value, fun, context, start, opts) do
     case @cache_strategy.read(table, key, value, context) do
       :retry ->
         if_enabled(@enable_telemetry) do
