@@ -20,7 +20,7 @@ defmodule Ditto.Application do
     Supervisor.init([], strategy: :one_for_one)
   end
 
-  def cache_strategy() do
+  def cache_strategy do
     @cache_strategy
   end
 end

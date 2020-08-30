@@ -62,7 +62,7 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
       :ets.select_delete(table, [{{key, {:completed, :_, :_}}, [], [true]}])
     end
 
-    def invalidate() do
+    def invalidate do
       # this is only place we have to run get_env, but given we are deleting everything its fine.
       Application.get_env(:ditto, :caches, [nil])
       |> Enum.reduce(0, fn cache, acc ->
@@ -98,7 +98,7 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
       ])
     end
 
-    def garbage_collect() do
+    def garbage_collect do
       expired_at = System.monotonic_time(:millisecond)
       # this is only place we have to run get_env, but given we are deleting everything its fine.
       Application.get_env(:ditto, :caches, [nil])

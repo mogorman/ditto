@@ -14,7 +14,7 @@ defmodule Ditto.Cache do
   require Ditto.Conditional
   import Ditto.Conditional
 
-  def cache_strategy() do
+  def cache_strategy do
     @cache_strategy
   end
 
@@ -258,7 +258,7 @@ defmodule Ditto.Cache do
     end
   end
 
-  def invalidate() do
+  def invalidate do
     if_enabled(@enable_telemetry) do
       time_metric_and_count(fn -> @cache_strategy.invalidate() end, %{
         cache: :all,
@@ -308,7 +308,7 @@ defmodule Ditto.Cache do
     end
   end
 
-  def garbage_collect() do
+  def garbage_collect do
     if_enabled(@enable_telemetry) do
       time_metric_and_count(fn -> @cache_strategy.garbage_collect() end, %{
         cache: :all,
