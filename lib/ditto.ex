@@ -23,7 +23,7 @@ defmodule Ditto do
       @ditto_origdefined %{}
       @before_compile Ditto
 
-      def __ditto_cache_name__() do
+      def __ditto_cache_name__ do
         @ditto_cache_name
       end
     end

@@ -98,7 +98,7 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Eviction) do
       if expired?, do: :retry, else: :ok
     end
 
-    def invalidate() do
+    def invalidate do
       case Application.get_env(:ditto, :caches) do
         nil ->
           num_deleted = :ets.select_delete(tab(nil), [{{:_, {:completed, :_, :_}}, [], [true]}])
@@ -162,7 +162,7 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Eviction) do
       num_deleted
     end
 
-    def garbage_collect() do
+    def garbage_collect do
       do_garbage_collect_all(@max_threshold)
     end
 

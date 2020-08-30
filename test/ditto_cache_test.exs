@@ -1,5 +1,6 @@
 defmodule Ditto.CacheTest do
   use ExUnit.Case
+  alias Ditto.CacheStrategy.Eviction
 
   @tab __MODULE__
   @fun_lock :fun_lock
@@ -240,20 +241,18 @@ defmodule Ditto.CacheTest do
   end
 
   def eat_memory(threshold) do
-    try do
-      for n <- 1..1_000_000 do
-        assert 10 ==
-                 Ditto.Cache.get_or_run(__MODULE__, String.to_atom("key#{n}"), [], fn -> 10 end)
+    for n <- 1..1_000_000 do
+      assert 10 ==
+               Ditto.Cache.get_or_run(__MODULE__, String.to_atom("key#{n}"), [], fn -> 10 end)
 
-        if threshold <= Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__) do
-          throw(:break)
-        end
+      if threshold <= Eviction.used_bytes(__MODULE__) do
+        throw(:break)
       end
-    else
-      _ -> raise "could not finish eating"
-    catch
-      :break -> :ok
     end
+
+    raise "could not finish eating"
+  catch
+    :break -> :ok
   end
 
   @tag skip: System.get_env("DITTO_TEST_MODE") != "Ditto.CacheStrategy.Eviction"
@@ -263,29 +262,29 @@ defmodule Ditto.CacheTest do
     max_threshold = Keyword.fetch!(opts, :max_threshold)
 
     eat_memory(max_threshold - 100)
-    assert max_threshold - 100 <= Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert max_threshold - 100 <= Eviction.used_bytes(__MODULE__)
     # read cached values to update last accessed time
     Ditto.Cache.get_or_run(__MODULE__, :key1, [], fn -> 20 end)
     Ditto.Cache.get_or_run(__MODULE__, :key2, [], fn -> 20 end)
     Ditto.Cache.get_or_run(__MODULE__, :key3, [], fn -> 20 end)
     # still exceeded the threshold
-    assert max_threshold - 100 <= Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert max_threshold - 100 <= Eviction.used_bytes(__MODULE__)
 
     # next inserting is occured garbage collection
     assert 10 == Ditto.Cache.get_or_run(__MODULE__, :gc, [], fn -> 10 end)
 
-    used_bytes = Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    used_bytes = Eviction.used_bytes(__MODULE__)
     assert min_threshold - 100 <= used_bytes && used_bytes <= min_threshold + 100
 
     # below keys are still cached
     Ditto.Cache.get_or_run(__MODULE__, :key1, [], fn -> 10 end)
     Ditto.Cache.get_or_run(__MODULE__, :key2, [], fn -> 10 end)
     Ditto.Cache.get_or_run(__MODULE__, :key3, [], fn -> 10 end)
-    assert used_bytes == Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert used_bytes == Eviction.used_bytes(__MODULE__)
 
     # below key is already collected
     Ditto.Cache.get_or_run(__MODULE__, :key4, [], fn -> 10 end)
-    assert used_bytes < Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert used_bytes < Eviction.used_bytes(__MODULE__)
   end
 
   @tag skip: System.get_env("DITTO_TEST_MODE") != "Ditto.CacheStrategy.Eviction"
@@ -294,19 +293,19 @@ defmodule Ditto.CacheTest do
     min_threshold = Keyword.fetch!(opts, :min_threshold)
 
     eat_memory(min_threshold)
-    assert min_threshold <= Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert min_threshold <= Eviction.used_bytes(__MODULE__)
 
     Ditto.Cache.get_or_run(__MODULE__, :a, [], fn -> 10 end)
     Ditto.Cache.get_or_run(__MODULE__, :b, [], fn -> 10 end)
     Ditto.Cache.get_or_run(__MODULE__, :c, [], fn -> 10 end)
     Ditto.Cache.garbage_collect()
 
-    used_bytes = Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    used_bytes = Eviction.used_bytes(__MODULE__)
     assert min_threshold > used_bytes
 
     # no effect
     Ditto.Cache.garbage_collect()
-    assert used_bytes == Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert used_bytes == Eviction.used_bytes(__MODULE__)
   end
 
   @tag skip: System.get_env("DITTO_TEST_MODE") != "Ditto.CacheStrategy.Eviction"
@@ -372,11 +371,11 @@ defmodule Ditto.CacheTest do
   @tag skip: System.get_env("DITTO_TEST_MODE") != "Ditto.CacheStrategy.Eviction_2"
   test "if :max_threshold is :infinity, cached values are not collected caused by memory size" do
     eat_memory(10_000_000)
-    used_bytes = Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    used_bytes = Eviction.used_bytes(__MODULE__)
     Ditto.Cache.garbage_collect()
-    assert used_bytes == Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert used_bytes == Eviction.used_bytes(__MODULE__)
     # invalidates explicitly
     Ditto.Cache.invalidate()
-    assert used_bytes > Ditto.CacheStrategy.Eviction.used_bytes(__MODULE__)
+    assert used_bytes > Eviction.used_bytes(__MODULE__)
   end
 end
