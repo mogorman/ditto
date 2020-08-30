@@ -3,7 +3,7 @@ defmodule Ditto.Cache do
   The caching layer for ditto.
 
   """
-  # @compile {:inline, myfun: 1}
+  # @compile {:inline, do_run: 5, do_already_running: 8, do_already_ran: 7}
   @cache_strategy Ditto.Application.cache_strategy()
   @max_waiters Application.get_env(:ditto, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:ditto, :waiter_sleep_ms, 200)
