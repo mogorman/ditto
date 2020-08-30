@@ -51,7 +51,13 @@ defmodule Ditto.Benchmarks.Bench do
     |> Agent.update(
       fn _ ->
         for _ <- 1..input_count do
-          n = :rand.uniform(func_count)
+          n =
+            if func_count == 1 do
+              1
+            else
+              :erlang.now()
+            end
+
           module.test(n, counter)
           :counters.add(counter, 2, 1)
         end

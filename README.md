@@ -10,9 +10,20 @@
 
 # Ditto
 
-A memoization macro.
+A fast caching solution built around memoization.
 
 The application available in [hex.pm](https://hex.pm/packages/ditto).
+
+## Metrics
+
+Metrics are offered via the [Telemetry library](https://github.com/beam-telemetry/telemetry). By default metrics are enabled. they do come at a cost in particular to cache hits, library is 50% slower because of this, this is still very fast and probably not an issue. If need be telemetry can be disabled by setting
+```elixir
+config :ditto, :enable_telemetry, false
+```
+
+The following metrics are emitted when enabled:
+* `[:ditto, :cache, :start]` Will contain all metric start events. (hits, misses, invalidations)
+* `[:ditto, :cache, :stop]` Will contain all events with duration.
 
 ## Requirement
 
