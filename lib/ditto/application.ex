@@ -7,7 +7,7 @@ defmodule Ditto.Application do
   @cache_strategy Application.get_env(:ditto, :cache_strategy, Ditto.CacheStrategy.Default)
 
   def start(_type, _args) do
-    Supervisor.start_link(__MODULE__, [], strategy: :one_for_one, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, strategy: :one_for_one, name: __MODULE__)
   end
 
   def stop(_state) do
