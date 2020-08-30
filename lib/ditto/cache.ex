@@ -7,7 +7,7 @@ defmodule Ditto.Cache do
   @cache_strategy Ditto.Application.cache_strategy()
   @max_waiters Application.get_env(:ditto, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:ditto, :waiter_sleep_ms, 200)
-  @enable_telemetry Application.get_env(:ditto, :enable_telemetry, false)
+  @enable_telemetry Application.get_env(:ditto, :enable_telemetry, true)
 
   @overflow_timeout Application.get_env(:ditto, :overflow_timeout, 5000)
 
