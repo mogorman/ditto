@@ -5,9 +5,10 @@ defmodule Ditto do
 
   defmacro __using__(_args) do
     quote do
+      @cache_strategy Ditto.Application.cache_strategy()
       @ditto_cache_name Enum.reduce(
                           Application.get_env(:ditto, :caches, []),
-                          Ditto.Application.cache_strategy(),
+                          @cache_strategy,
                           fn mod, acc ->
                             if mod == __MODULE__ do
                               mod
@@ -16,6 +17,9 @@ defmodule Ditto do
                             end
                           end
                         )
+
+      @ditto_table_name @cache_strategy.tab(@cache_strategy)
+
       import Ditto,
         only: [defditto: 1, defditto: 2, defditto: 3, defpditto: 1, defpditto: 2, defpditto: 3]
 
@@ -169,7 +173,7 @@ defmodule Ditto do
                 def unquote(origname)(unquote_splicing(args)) do
                   if __MODULE__ == @ditto_cache_name do
                     Ditto.Cache.get_or_run_optimized(
-                      @ditto_cache_name,
+                      @ditto_table_name,
                       {
                         unquote(origname),
                         [unquote_splicing(args)]
@@ -179,7 +183,7 @@ defmodule Ditto do
                     )
                   else
                     Ditto.Cache.get_or_run_optimized(
-                      @ditto_cache_name,
+                      @ditto_table_name,
                       {
                         __MODULE__,
                         unquote(origname),
@@ -195,7 +199,7 @@ defmodule Ditto do
                 defp unquote(origname)(unquote_splicing(args)) do
                   if __MODULE__ == @ditto_cache_name do
                     Ditto.Cache.get_or_run_optimized(
-                      @ditto_cache_name,
+                      @ditto_table_name,
                       {
                         unquote(origname),
                         [unquote_splicing(args)]
@@ -205,7 +209,7 @@ defmodule Ditto do
                     )
                   else
                     Ditto.Cache.get_or_run_optimized(
-                      @ditto_cache_name,
+                      @ditto_table_name,
                       {
                         __MODULE__,
                         unquote(origname),

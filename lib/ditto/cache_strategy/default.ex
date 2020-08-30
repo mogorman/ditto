@@ -23,34 +23,31 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
       end
     end
 
-    def tab(_module, _key \\ nil)
-
-    def tab(nil, _key) do
+    def tab(nil) do
       @ets_tab
     end
 
-    def tab(__MODULE__, _key) do
+    def tab(__MODULE__) do
       @ets_tab
     end
 
-    def tab(module, _key) do
+    def tab(module) do
       Module.concat(@ets_tab, module)
     end
 
     def cache(_module, _key, _value, opts) do
-      expires_in = Keyword.get(opts, :expires_in, @default_expires_in)
+      case Keyword.get(opts, :expires_in, @default_expires_in) do
+        :infinity -> :infinity
+        value -> System.monotonic_time(:millisecond) + value
+      end
+    end
 
-      expired_at =
-        case expires_in do
-          :infinity -> :infinity
-          value -> System.monotonic_time(:millisecond) + value
-        end
-
-      expired_at
+    def read(_table, _key, _value, :infinity) do
+      :ok
     end
 
     def read(table, key, _value, expired_at) do
-      if expired_at != :infinity && System.monotonic_time(:millisecond) > expired_at do
+      if System.monotonic_time(:millisecond) > expired_at do
         local_invalidate(table, key)
         :retry
       else

@@ -3,7 +3,7 @@ defmodule Ditto.Cache do
   The caching layer for ditto.
 
   """
-  # @compile {:inline, do_run: 5, do_already_running: 8, do_already_ran: 7}
+  @compile {:inline, do_run: 5, do_already_running: 8, do_already_ran: 7, record_metric: 1}
   @cache_strategy Ditto.Application.cache_strategy()
   @max_waiters Application.get_env(:ditto, :max_waiters, 20)
   @waiter_sleep_ms Application.get_env(:ditto, :waiter_sleep_ms, 200)
@@ -109,25 +109,26 @@ defmodule Ditto.Cache do
     key
   end
 
-  def get_or_run(module, function, args, fun, opts \\ []) do
+  def get_or_run(module, function, args, fun, opts \\ [])
+
+  def get_or_run(module, function, args, fun, opts) when not is_function(fun) do
+    get_or_run(module, function, args, fn -> fun end, opts)
+  end
+
+  def get_or_run(module, function, args, fun, opts) do
     cache_name = cache_name(module)
+    table_name = @cache_strategy.tab(cache_name)
 
     case cache_name == module do
       true ->
-        get_or_run_optimized(cache_name, {function, args}, fun, opts)
+        get_or_run_optimized(table_name, {function, args}, fun, opts)
 
       false ->
-        get_or_run_optimized(cache_name, {module, function, args}, fun, opts)
+        get_or_run_optimized(table_name, {module, function, args}, fun, opts)
     end
   end
 
-  def get_or_run_optimized(module, _cache, function, args, fun, opts \\ [])
-
-  def get_or_run_optimized(module, cache, function, args, fun, opts) when not is_function(fun) do
-    get_or_run_optimized(module, cache, function, args, fn -> fun end, opts)
-  end
-
-  def get_or_run_optimized(cache_name, key, fun, opts) do
+  def get_or_run_optimized(table_name, key, fun, opts \\ []) do
     if_enabled(@enable_telemetry) do
       start = System.monotonic_time()
     else
@@ -135,13 +136,12 @@ defmodule Ditto.Cache do
     end
 
     key = normalize_key(key)
-    table = @cache_strategy.tab(cache_name, key)
 
     if_enabled(@enable_telemetry) do
-      record_metric(%{cache: table, key: key, status: :attempt})
+      record_metric(%{cache: table_name, key: key, status: :attempt})
     end
 
-    do_get_or_run(table, key, fun, start, opts)
+    do_get_or_run(table_name, key, fun, start, opts)
   end
 
   defp do_get_or_run(table, key, fun, start, opts) do
@@ -253,7 +253,6 @@ defmodule Ditto.Cache do
         if_enabled(@enable_telemetry) do
           record_metric(%{cache: table, key: key, start: start, status: :hit})
         end
-
         value
     end
   end

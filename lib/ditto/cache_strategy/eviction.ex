@@ -41,13 +41,11 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Eviction) do
       Module.concat(tab(cache), Expiration)
     end
 
-    def tab(_module, _key \\ nil)
-
-    def tab(nil, _key) do
+    def tab(nil) do
       @ets_tab
     end
 
-    def tab(module, _key) do
+    def tab(module) do
       Module.concat(@ets_tab, module)
     end
 

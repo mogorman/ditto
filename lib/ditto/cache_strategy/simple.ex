@@ -12,7 +12,7 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Simple) do
       :ets.new(@ets_tab, [:public, :set, :named_table, {:read_concurrency, true}])
     end
 
-    def tab(_module, _key \\ nil) do
+    def tab(_module) do
       @ets_tab
     end
 
