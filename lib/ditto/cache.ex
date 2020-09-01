@@ -253,6 +253,7 @@ defmodule Ditto.Cache do
         if_enabled(@enable_telemetry) do
           record_metric(%{cache: table, key: key, start: start, status: :hit})
         end
+
         value
     end
   end

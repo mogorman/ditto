@@ -8,10 +8,18 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
 
     @default_expires_in Application.get_env(:ditto, :expires_in, :infinity)
 
+    @default_tags_enable Application.get_env(:ditto, :enable_tags, true)
+
     @ets_tab __MODULE__
     alias Ditto.Cache
+    require Ditto.Conditional
+    import Ditto.Conditional
 
     def init(opts) do
+      if_enabled(@default_tags_enable) do
+        init_tag_cache(tab(nil))
+      end
+
       case Keyword.get(opts, :caches) do
         nil ->
           :ets.new(tab(nil), [:public, :set, :named_table, {:read_concurrency, true}])
@@ -21,6 +29,12 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
             :ets.new(tab(cache), [:public, :set, :named_table, {:read_concurrency, true}])
           end)
       end
+    end
+
+    defp init_tag_cache(module) do
+      module
+      |> Module.concat(Tags)
+      |> :ets.new([:public, :duplicate_bag, :named_table, {:read_concurrency, true}])
     end
 
     def tab(nil) do
@@ -36,6 +50,8 @@ if Ditto.CacheStrategy.configured?(Ditto.CacheStrategy.Default) do
     end
 
     def cache(_module, _key, _value, opts) do
+      IO.puts("opts #{inspect(opts)}")
+
       case Keyword.get(opts, :expires_in, @default_expires_in) do
         :infinity -> :infinity
         value -> System.monotonic_time(:millisecond) + value

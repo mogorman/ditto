@@ -3,6 +3,8 @@ defmodule Ditto do
   #{File.read!("README.md")}
   """
 
+  # todo: add tags to the records put in default cache so that we can invalidate tags from normal invalidtate or vice versa
+
   defmacro __using__(_args) do
     quote do
       @cache_strategy Ditto.Application.cache_strategy()
@@ -116,7 +118,42 @@ defmodule Ditto do
     end
   end
 
+  # defp register_dittodef(call, expr) do
+  #   case call do
+  #     {:when, meta, [{origname, exprmeta, args}, right]} ->
+  # 	IO.puts("ARGS ARE #{inspect(args)}")
+  #       quote bind_quoted: [
+  #         expr: Macro.escape(expr, unquote: true),
+  #         origname: Macro.escape(origname, unquote: true),
+  #         exprmeta: Macro.escape(exprmeta, unquote: true),
+  #         args: Macro.escape(args, unquote: true),
+  #         meta: Macro.escape(meta, unquote: true),
+  #         right: Macro.escape(right, unquote: true)
+  #       ] do
+  #         require Ditto
+
+  #         fun = {:when, meta, [{Ditto.__dittoname__(origname), exprmeta, args}, right]}
+  #         @ditto_dittodefs [{fun, expr} | @ditto_dittodefs]
+  #       end
+
+  #     {origname, exprmeta, args} ->
+  #       quote bind_quoted: [
+  #         expr: Macro.escape(expr, unquote: true),
+  #         origname: Macro.escape(origname, unquote: true),
+  #         exprmeta: Macro.escape(exprmeta, unquote: true),
+  #         args: Macro.escape(args, unquote: true)
+  #       ] do
+  #         require Ditto
+
+  #         fun = {Ditto.__dittoname__(origname), exprmeta, args}
+  #         @ditto_dittodefs [{fun, expr} | @ditto_dittodefs]
+  #       end
+  #   end
+  # end
+
   defp define(method, call, opts, expr) do
+    #    register_dittodef = register_dittodef(call, expr)
+    IO.puts("DEFINED! CALL #{inspect(call)}")
     register_dittodef =
       case call do
         {:when, meta, [{origname, exprmeta, args}, right]} ->
@@ -154,103 +191,133 @@ defmodule Ditto do
         fun -> fun
       end
 
+    opts = opts || []
+
     deffun =
       quote bind_quoted: [
+              call: Macro.escape(call, unquote: true),
               fun: Macro.escape(fun, unquote: true),
               method: Macro.escape(method, unquote: true),
               opts: Macro.escape(opts, unquote: true)
-            ] do
-        {origname, from, to} = Ditto.__expand_default_args__(fun)
+      ] do
+      {_, _, ugh_args} = fun
+        {origname, args} = Macro.decompose_call(fun)
         dittoname = Ditto.__dittoname__(origname)
 
-        for n <- from..to do
-          args = Ditto.__make_args__(n)
+	parsed_args = Enum.map(args, fn
+	  {:\\, _location, [{name, _location, _value}, _ ]} -> name
+	  {name, _location, _value} -> name
+	end)
 
-          unless Map.has_key?(@ditto_origdefined, {origname, n}) do
-            @ditto_origdefined Map.put(@ditto_origdefined, {origname, n}, true)
-            case method do
-              :def ->
-                def unquote(origname)(unquote_splicing(args)) do
-                  if __MODULE__ == @ditto_cache_name do
-                    Ditto.Cache.get_or_run_optimized(
-                      @ditto_table_name,
-                      {
-                        unquote(origname),
-                        [unquote_splicing(args)]
-                      },
-                      fn -> unquote(dittoname)(unquote_splicing(args)) end,
-                      unquote(opts)
-                    )
-                  else
-                    Ditto.Cache.get_or_run_optimized(
-                      @ditto_table_name,
-                      {
-                        __MODULE__,
-                        unquote(origname),
-                        [unquote_splicing(args)]
-                      },
-                      fn -> unquote(dittoname)(unquote_splicing(args)) end,
-                      unquote(opts)
-                    )
-                  end
-                end
+        tag_args =
+          Enum.map(Keyword.get(opts, :tags, []), fn tag ->
+            {tag, Enum.find_index(parsed_args, fn arg -> arg == tag end)}
+          end)
+	IO.puts("DEFINED2 CALL #{inspect(ugh_args)}")
+	IO.puts("DEFINED3 CALL #{inspect(args)}")
+	IO.puts("DEFINED4 CALL #{inspect(call)} ::::: #{inspect(parsed_args)}")
+        case method do
+          :def ->
+            if __MODULE__ == @ditto_cache_name do
+	      IO.puts("HERE")
+              def unquote(call) do
+#                final_args = [unquote_splicing(args)]
+		IO.puts("DEFINED CALL #{inspect(call)}")
+                # final_tags =
+                #   Enum.reduce(unquote(tag_args), %{}, fn
+                #     {tag_arg, nil}, acc ->
+                #       Map.put(acc, tag_arg, nil)
 
-              :defp ->
-                defp unquote(origname)(unquote_splicing(args)) do
-                  if __MODULE__ == @ditto_cache_name do
-                    Ditto.Cache.get_or_run_optimized(
-                      @ditto_table_name,
-                      {
-                        unquote(origname),
-                        [unquote_splicing(args)]
-                      },
-                      fn -> unquote(dittoname)(unquote_splicing(args)) end,
-                      unquote(opts)
-                    )
-                  else
-                    Ditto.Cache.get_or_run_optimized(
-                      @ditto_table_name,
-                      {
-                        __MODULE__,
-                        unquote(origname),
-                        [unquote_splicing(args)]
-                      },
-                      fn -> unquote(dittoname)(unquote_splicing(args)) end,
-                      unquote(opts)
-                    )
-                  end
-                end
+                #     {tag_arg, pos}, acc ->
+                #       Map.put(acc, tag_arg, Enum.at(final_args, pos, nil))
+                #   end)
+
+                Ditto.Cache.get_or_run_optimized(
+                  @ditto_table_name,
+                  {
+                    unquote(origname), nil
+#                    final_args
+                  },
+                  fn -> unquote(dittoname)(unquote_splicing([])) end,
+                  Keyword.put(unquote(opts), :tags, final_tags)
+                )
+              end
+            else
+              def unquote(call) do
+                final_args = [unquote_splicing(args)]
+
+                final_tags =
+                  Enum.reduce(unquote(tag_args), %{}, fn
+                    {tag_arg, nil}, acc -> Map.put(acc, tag_arg, nil)
+                    {tag_arg, pos}, acc -> Map.put(acc, tag_arg, Enum.at(final_args, pos))
+                  end)
+
+                Ditto.Cache.get_or_run_optimized(
+                  @ditto_table_name,
+                  {
+                    __MODULE__,
+                    unquote(origname),
+                    [unquote_splicing(parsed_args)]
+                  },
+                  fn -> unquote(dittoname)(unquote_splicing(parsed_args)) end,
+                  Keyword.put(unquote(opts), :tags, final_tags)
+                )
+              end
             end
-          end
+
+          :defp ->
+            if __MODULE__ == @ditto_cache_name do
+              defp unquote(call) do
+                final_args = [unquote_splicing(args)]
+
+                final_tags =
+                  Enum.reduce(unquote(tag_args), %{}, fn
+                    {tag_arg, nil}, acc ->
+                      Map.put(acc, tag_arg, nil)
+
+                    {tag_arg, pos}, acc ->
+                      Map.put(acc, tag_arg, Enum.at(final_args, pos, nil))
+                  end)
+
+                Ditto.Cache.get_or_run_optimized(
+                  @ditto_table_name,
+                  {
+                    unquote(origname),
+                    final_args
+                  },
+                  fn -> unquote(dittoname)(unquote_splicing(args)) end,
+                  Keyword.put(unquote(opts), :tags, final_tags)
+                )
+              end
+            else
+              defp unquote(call) do
+                final_args = [unquote_splicing(args)]
+
+                final_tags =
+                  Enum.reduce(unquote(tag_args), %{}, fn
+                    {tag_arg, nil}, acc ->
+                      Map.put(acc, tag_arg, nil)
+
+                    {tag_arg, pos}, acc ->
+                      Map.put(acc, tag_arg, Enum.at(final_args, pos, nil))
+                  end)
+
+                Ditto.Cache.get_or_run_optimized(
+                  @ditto_table_name,
+                  {
+                    __MODULE__,
+                    unquote(origname),
+                    final_args
+                  },
+                  fn -> unquote(dittoname)(unquote_splicing(args)) end,
+                  Keyword.put(unquote(opts), :tags, final_tags)
+                )
+              end
+            end
         end
       end
 
     [register_dittodef, deffun]
-  end
-
-  # {:foo, 1, 3} == __expand_default_args__(quote(do: foo(x, y \\ 10, z \\ 20)))
-  def __expand_default_args__(fun) do
-    {name, args} = Macro.decompose_call(fun)
-
-    is_default_arg = fn
-      {:\\, _, _} -> true
-      _ -> false
-    end
-
-    min_args = Enum.reject(args, is_default_arg)
-    {name, length(min_args), length(args)}
-  end
-
-  # [] == __make_args__(0)
-  # [{:t1, [], Elixir}, {:t2, [], Elixir}] == __make_args__(2)
-  def __make_args__(0) do
-    []
-  end
-
-  def __make_args__(n) do
-    for v <- 1..n do
-      {:"t#{v}", [], Elixir}
-    end
   end
 
   def __dittoname__(origname), do: :"__#{origname}_dittoize"
